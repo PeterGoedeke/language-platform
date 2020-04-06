@@ -1,4 +1,4 @@
-# client-server
+# client_server
 
 ## Project setup
 ```
