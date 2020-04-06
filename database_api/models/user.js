@@ -12,11 +12,13 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    // accountType: {
-    //     type: String,
-    //     required: true
-    // },
-
+    accountType: {
+        type: String,
+        default: 'user'
+    },
+    // accountSettings,
+    // importerBlacklists,
+    lists: [ListSchema],
     weeklyChallenges: [ListSchema]
 })
 
