@@ -1,2 +1,6 @@
 client_server/node_modules
+
 database_api/node_modules
+database_api/.env
+
+request.rest
