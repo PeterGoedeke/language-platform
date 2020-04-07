@@ -12,13 +12,13 @@ const validate = require('./validation')
 async function login(req, res) {
     // validate the request body with Joi
     const { error } = validate(req.body)
-    if(error) return res.status(400).send(error.details[0].message)
+    if(error) return res.status(400).json(error.details[0].message)
     
     const user = await User.findOne({ email: req.body.email })
-    if(!user) return res.status(400).send('Email not found.')
+    if(!user) return res.status(400).json('Email not found.')
     // use bcrypt to check if the password is correct
     const validPassword = await bcrypt.compare(req.body.password, user.password)
-    if(!validPassword) return res.status(400).send('Invalid password.')
+    if(!validPassword) return res.status(400).json('Invalid password.')
     // sign and send the jwt
     const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET)
     res.header('auth-token', token).send(token)
@@ -31,10 +31,10 @@ async function login(req, res) {
 async function register(req, res) {
     // validate the request body with Joi
     const { error } = validate(req.body)
-    if(error) return res.status(400).send(error.details[0].message)
+    if(error) return res.status(400).json(error.details[0].message)
 
     const emailInUse = await User.findOne( { email: req.body.email })
-    if(emailInUse) return res.status(400).send('Email already exists.')
+    if(emailInUse) return res.status(400).json('Email already exists.')
     // hash the given password with bcrypt
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(req.body.password, salt)
@@ -50,7 +50,7 @@ async function register(req, res) {
         res.header('auth-token', token).send()
     }
     catch (err) {
-        res.status(400).send(err)
+        res.status(400).json(err)
     }
 }
 

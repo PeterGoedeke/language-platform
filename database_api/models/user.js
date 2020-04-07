@@ -19,7 +19,8 @@ const UserSchema = new mongoose.Schema({
     // accountSettings,
     // importerBlacklists,
     lists: [ListSchema],
-    weeklyChallenges: [ListSchema]
+    weeklyChallenges: [ListSchema],
+    currentChallenge: ListSchema
 })
 
 mongoose.model('User', UserSchema)

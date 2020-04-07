@@ -7,7 +7,9 @@ const path = require('path')
 require('./models/db.js')
 
 const authRouter = require('./routes/auth')
+const userRouter = require('./routes/user')
 const listRouter = require('./routes/list')
+
 
 const app = express()
 
@@ -15,6 +17,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 
 app.use('/', authRouter)
+app.use('/user', userRouter)
 app.use('/list', listRouter)
 
 // catch 404 and forward to error handler
@@ -30,7 +33,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.send(err)
+  res.json(err)
   console.log(err)
 });
 

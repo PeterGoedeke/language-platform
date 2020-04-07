@@ -10,6 +10,11 @@ const QuestionSchema = new mongoose.Schema({
         type: [String],
         required: true
     },
+    // the grammatical type of the words represented by the question
+    wordClass: {
+        type: String,
+        required: true
+    },
     // the weightings used to determine how frequently to ask a question
     l1Weight: Number,
     l2Weight: Number,
