@@ -10,6 +10,7 @@ router.post('/list/:list_id', auth, userCtrl.createQuestion)
 router.delete('/list/:list_id', auth, userCtrl.deleteList)
 router.put('/list/:list_id', auth, userCtrl.editList)
 
+router.post('/list/:list_id/m', auth, userCtrl.createQuestions)
 router.delete('/list/:list_id/:question_id', auth, userCtrl.deleteQuestion)
 router.put('/list/:list_id/:question_id', auth, userCtrl.editQuestion)
 

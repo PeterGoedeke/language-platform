@@ -100,36 +100,56 @@ const editListForUser = readListAnd((req, res) => {
 })
 
 
+function addQuestion(req, source) {
+    if(!source) source = req.body
+    req.list.questions.push({
+        l1Values: source.l1Values,
+        l2Values: source.l2Values,
+    
+        wordClass: source.wordClass,
+    
+        l1Weight: source.l1Weight,
+        l2Weight: source.l2Weight,
+    
+        l1Streak: source.l1Streak,
+        l2Streak: source.l2Streak,
+    
+        l1Downtime: source.l1Downtime,
+        l2Downtime: source.l2Downtime,
+    
+        l1LastFinish: source.l1LastFinish,
+        l2LastFinish: source.l2LastFinish,
+    
+        l1RecentWrongAnswers: source.l1RecentWrongAnswers,
+        l2RecentWrongAnswers: source.l2RecentWrongAnswers
+    })
+}
 const createQuestionForList = readListAnd((req, res) => {
     if(!validate.isQuestion(req, res)) return
 
-    req.list.questions.push({
-        l1Values: req.body.l1Values,
-        l2Values: req.body.l2Values,
-    
-        wordClass: req.body.wordClass,
-    
-        l1Weight: req.body.l1Weight,
-        l2Weight: req.body.l2Weight,
-    
-        l1Streak: req.body.l1Streak,
-        l2Streak: req.body.l2Streak,
-    
-        l1Downtime: req.body.l1Downtime,
-        l2Downtime: req.body.l2Downtime,
-    
-        l1LastFinish: req.body.l1LastFinish,
-        l2LastFinish: req.body.l2LastFinish,
-    
-        l1RecentWrongAnswers: req.body.l1RecentWrongAnswers,
-        l2RecentWrongAnswers: req.body.l2RecentWrongAnswers
-    })
+    addQuestion(req)
     try {
         req.user.save() // this may be a possible bug?
         const newQuestion = req.list.questions.slice(-1).pop()
         return res.status(201).json(newQuestion)
     }
     catch (err) {
+        return res.status(400).json(err)
+    }
+})
+const createQuestionsForList = readListAnd((req, res) => {
+    if(!validate.isQuestionList(req, res)) return
+
+    try {
+        req.body.questions.forEach(question => {
+            addQuestion(req, question)
+        })
+        req.user.save()
+        const newQuestions = req.list.questions.slice(Math.max(req.list.questions.length - req.body.questions.length), 0)
+        return res.status(201).json(newQuestions)
+    }
+    catch (err) {
+        console.log(err)
         return res.status(400).json(err)
     }
 })
@@ -194,6 +214,7 @@ module.exports = {
     editList: editListForUser,
 
     createQuestion: createQuestionForList,
+    createQuestions: createQuestionsForList,
     deleteQuestion: deleteQuestionForList,
     editQuestion: editQuestionForList,
 

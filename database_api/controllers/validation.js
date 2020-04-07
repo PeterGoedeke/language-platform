@@ -74,5 +74,19 @@ module.exports = {
      * @param {Object} res The response object
      */
     isQuestion: isValid(questionSchema),
+    isQuestionList: function(req, res) {
+        if(!req.body.questions || !Array.isArray(req.body.questions)) {
+            res.status(400).json('Invalid request.')
+            return false
+        }
+        for(const question of req.body.questions) {
+            const { error } = questionSchema.validate(question)
+            if(error) {
+                res.status(400).json(error.details[0].message)
+                return false
+            }
+        }
+        return true
+    },
     isId: isValidId
 }
