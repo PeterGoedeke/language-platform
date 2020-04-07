@@ -1,4 +1,4 @@
-const auth = require('../controllers/authorisation')
+const auth = require('../controllers/security/authorisation')
 const router = require('express').Router()
 const userCtrl = require('../controllers/user')
 

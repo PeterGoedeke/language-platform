@@ -1,35 +1,7 @@
 const mongoose = require('mongoose')
 const User = mongoose.model('User')
 const List = mongoose.model('List')
-const Joi = require('@hapi/joi')
-Joi.objectId = require('joi-objectid')(Joi)
-
-const idSchema = Joi.object({
-    _id: Joi.objectId()
-})
-const listSchema = Joi.object({
-    language1: Joi.string().length(2).lowercase().alphanum(),
-    language2: Joi.string().length(2).lowercase().alphanum(),
-    name: Joi.string().pattern(/^[\w\-\s]+$/),
-    public: Joi.boolean()
-})
-
-function isValid(schema, req, res) {
-    const { error } = schema.validate(req.body)
-    if(error) {
-        res.status(400).json(error.details[0].message)
-        return false
-    }
-    return true
-}
-function isValidId(_id, res) {
-    const { error } = idSchema.validate({ _id })
-    if(error) {
-        res.status(400).json(error.details[0].message)
-        return false
-    }
-    return true
-}
+const validate = require('./validation')
 
 function readUserAnd(f, fieldsDesired = '') {
     return async function(req, res) {
@@ -48,7 +20,7 @@ function readUserAnd(f, fieldsDesired = '') {
 }
 function readListAnd(f) {
     return readUserAnd((req, res) => {
-        if(!isValidId(req.params.list_id, res)) return
+        if(!validate.isId(req.params.list_id, res)) return
 
         try {
             req.list = req.user.lists.id(req.params.list_id)
@@ -61,7 +33,7 @@ function readListAnd(f) {
 }
 function readQuestionAnd(f) {
     return readListAnd((req, res) => {
-        if(!isValidId(req.params.question_id, res)) return
+        if(!validate.isId(req.params.question_id, res)) return
 
         try {
             req.question = req.list.id(req.params.question_id)
@@ -81,7 +53,7 @@ const getUserHistoricalChallenges = readUserAnd((req, res) => {
 }, 'weeklyChallenges')
 
 const createListForUser = readUserAnd((req, res) => {
-    if(!isValid(listSchema, req, res)) return
+    if(!validate.isList(req, res)) return
 
     req.user.lists.push({
         language1: req.body.language1,
@@ -136,6 +108,10 @@ module.exports = {
     createList: createListForUser,
     deleteList: deleteListForUser,
     editList: editListForUser,
+
+    createQuestion: createQuestionForList,
+    deleteQuestion: deleteQuestionForList,
+    editQuestion: editQuestionForList,
 
     challengesList: getUserHistoricalChallenges,
     newChallenge: newChallengeForUser
