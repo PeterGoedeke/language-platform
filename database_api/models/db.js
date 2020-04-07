@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const dbURI = 'mongodb://localhost/language-platform'
+const dbURI = process.env.DB_URI
 mongoose.connect(dbURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
