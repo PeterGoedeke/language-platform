@@ -45,3 +45,4 @@ process.on('SIGTERM', () => {
 
 require('./list')
 require('./user')
+require('./translation')
