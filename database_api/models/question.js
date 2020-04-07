@@ -16,20 +16,50 @@ const QuestionSchema = new mongoose.Schema({
         required: true
     },
     // the weightings used to determine how frequently to ask a question
-    l1Weight: Number,
-    l2Weight: Number,
+    l1Weight: {
+        type: Number,
+        default: 10
+    },
+    l2Weight: {
+        type: Number,
+        default: 10
+    },
     // the number of times the question has been answered correctly in a row
-    l1Streak: Number,
-    l2Streak: Number,
+    l1Streak: {
+        type: Number,
+        default: 0
+    },
+    l2Streak: {
+        type: Number,
+        default: 0
+    },
     // the time which should pass before the question is asked again after being finished
-    l1Downtime: Number,
-    l2Downtime: Number,
+    l1Downtime: {
+        type: Number,
+        default: 0
+    },
+    l2Downtime: {
+        type: Number,
+        default: 0
+    },
     // the time at which the question was last finished
-    l1LastFinish: Number,
-    l2LastFinish: Number,
+    l1LastFinish: {
+        type: Number,
+        default: 0
+    },
+    l2LastFinish: {
+        type: Number,
+        default: 0
+    },
     // tally of the wrong answers since the last finish
-    l1RecentWrongAnswers: Number,
-    l2RecentWrongAnswers: Number
+    l1RecentWrongAnswers: {
+        type: Number,
+        default: 0
+    },
+    l2RecentWrongAnswers: {
+        type: Number,
+        default: 0
+    }
 })
 
 mongoose.model('Question', QuestionSchema)

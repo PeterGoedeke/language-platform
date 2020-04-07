@@ -10,6 +10,27 @@ const listSchema = Joi.object({
     name: Joi.string().pattern(/^[\w\-\s]+$/),
     public: Joi.boolean()
 })
+const questionSchema = Joi.object({
+    l1Values: Joi.array().items(Joi.string()),
+    l2Values: Joi.array().items(Joi.string()),
+
+    wordClass: Joi.string().alphanum(),
+
+    l1Weight: Joi.number().min(0),
+    l2Weight: Joi.number().min(0),
+
+    l1Streak: Joi.number().min(0),
+    l2Streak: Joi.number().min(0),
+
+    l1Downtime: Joi.number().min(0),
+    l2Downtime: Joi.number().min(0),
+
+    l1LastFinish: Joi.number().min(0),
+    l2LastFinish: Joi.number().min(0),
+
+    l1RecentWrongAnswers: Joi.number().min(0),
+    l2RecentWrongAnswers: Joi.number().min(0)
+})
 
 /**
  * Higher order function which produces a validation function which validates the request body against the provided schema.
@@ -47,5 +68,11 @@ module.exports = {
      * @param {Object} res The response object
      */
     isList: isValid(listSchema),
+    /**
+     * Validate that the contents of req.body is a question. Uses the response object to reject the request if it is not valid.
+     * @param {Object} req The request object
+     * @param {Object} res The response object
+     */
+    isQuestion: isValid(questionSchema),
     isId: isValidId
 }

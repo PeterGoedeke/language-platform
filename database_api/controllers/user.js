@@ -34,12 +34,13 @@ function readListAnd(f) {
 function readQuestionAnd(f) {
     return readListAnd((req, res) => {
         if(!validate.isId(req.params.question_id, res)) return
-
+        
         try {
-            req.question = req.list.id(req.params.question_id)
+            req.question = req.list.questions.find(question => question._id == req.params.question_id)
             f(req, res)
         }
         catch (err) {
+            console.log(err)
             return res.status(404).json(err)
         }
     })
@@ -48,9 +49,6 @@ function readQuestionAnd(f) {
 const getUserLists = readUserAnd((req, res) => {
     return res.status(200).json(req.user.lists)
 }, 'lists')
-const getUserHistoricalChallenges = readUserAnd((req, res) => {
-    return res.status(200).json(req.user.weeklyChallenges)
-}, 'weeklyChallenges')
 
 const createListForUser = readUserAnd((req, res) => {
     if(!validate.isList(req, res)) return
@@ -85,6 +83,8 @@ const deleteListForUser = readListAnd((req, res) => {
 })
 
 const editListForUser = readListAnd((req, res) => {
+    if(!validate.isList(req, res)) return
+
     try {
         req.list.language1 = req.body.language1
         req.list.language2 = req.body.language2
@@ -99,9 +99,93 @@ const editListForUser = readListAnd((req, res) => {
     }
 })
 
+
+const createQuestionForList = readListAnd((req, res) => {
+    if(!validate.isQuestion(req, res)) return
+
+    req.list.questions.push({
+        l1Values: req.body.l1Values,
+        l2Values: req.body.l2Values,
+    
+        wordClass: req.body.wordClass,
+    
+        l1Weight: req.body.l1Weight,
+        l2Weight: req.body.l2Weight,
+    
+        l1Streak: req.body.l1Streak,
+        l2Streak: req.body.l2Streak,
+    
+        l1Downtime: req.body.l1Downtime,
+        l2Downtime: req.body.l2Downtime,
+    
+        l1LastFinish: req.body.l1LastFinish,
+        l2LastFinish: req.body.l2LastFinish,
+    
+        l1RecentWrongAnswers: req.body.l1RecentWrongAnswers,
+        l2RecentWrongAnswers: req.body.l2RecentWrongAnswers
+    })
+    try {
+        req.user.save() // this may be a possible bug?
+        const newQuestion = req.list.questions.slice(-1).pop()
+        return res.status(201).json(newQuestion)
+    }
+    catch (err) {
+        return res.status(400).json(err)
+    }
+})
+
+const deleteQuestionForList = readQuestionAnd((req, res) => {
+    console.log('okay')
+    try {
+        req.question.remove()
+        req.user.save()
+        return res.status(204).json(null)
+    }
+    catch (err) {
+        return res.status(404).json(err)
+    }
+})
+
+const editQuestionForList = readQuestionAnd((req, res) => {
+    if(!validate.isQuestion(req, res)) return
+
+    try {
+        req.question.l1Values = req.body.l1Values,
+        req.question.l2Values = req.body.l2Values,
+    
+        req.question.wordClass = req.body.wordClass,
+    
+        req.question.l1Weight = req.body.l1Weight,
+        req.question.l2Weight = req.body.l2Weight,
+    
+        req.question.l1Streak = req.body.l1Streak,
+        req.question.l2Streak = req.body.l2Streak,
+    
+        req.question.l1Downtime = req.body.l1Downtime,
+        req.question.l2Downtime = req.body.l2Downtime,
+    
+        req.question.l1LastFinish = req.body.l1LastFinish,
+        req.question.l2LastFinish = req.body.l2LastFinish,
+    
+        req.question.l1RecentWrongAnswers = req.body.l1RecentWrongAnswers,
+        req.question.l2RecentWrongAnswers = req.body.l2RecentWrongAnswers
+    
+        req.user.save()
+        return res.status(204).json(null)
+    }
+    catch (err) {
+        return res.status(404).json(err)
+    }
+})
+
+
 const newChallengeForUser = readUserAnd(async (req, res) => {
 
 })
+
+const getUserHistoricalChallenges = readUserAnd((req, res) => {
+    return res.status(200).json(req.user.weeklyChallenges)
+}, 'weeklyChallenges')
 
 module.exports = {
     list: getUserLists,
