@@ -5,7 +5,7 @@ const Joi = require('@hapi/joi')
 Joi.objectId = require('joi-objectid')(Joi)
 
 const idSchema = Joi.object({
-    id: Joi.objectId()
+    _id: Joi.objectId()
 })
 const listSchema = Joi.object({
     language1: Joi.string().length(2).lowercase().alphanum(),
@@ -22,13 +22,17 @@ function isValid(schema, req, res) {
     }
     return true
 }
+function isValidId(_id, res) {
+    const { error } = idSchema.validate({ _id })
+    if(error) {
+        res.status(400).json(error.details[0].message)
+        return false
+    }
+    return true
+}
 
 function readUserAnd(f, fieldsDesired = '') {
     return async function(req, res) {
-        // user joi to check whether the provided id is valid
-        const { error } = idSchema.validate(req.params)
-        if(error) return res.status(400).json(error.details[0].message)
-
         try {
             const user = await User.findById(req.payload._id, fieldsDesired)
             if(!user) return res.status(400).json('Could not find a user with that id.')
@@ -42,6 +46,32 @@ function readUserAnd(f, fieldsDesired = '') {
         }
     }
 }
+function readListAnd(f) {
+    return readUserAnd((req, res) => {
+        if(!isValidId(req.params.list_id, res)) return
+
+        try {
+            req.list = req.user.lists.id(req.params.list_id)
+            f(req, res)
+        }
+        catch (err) {
+            return res.status(404).json(err)
+        }
+    }, 'lists')
+}
+function readQuestionAnd(f) {
+    return readListAnd((req, res) => {
+        if(!isValidId(req.params.question_id, res)) return
+
+        try {
+            req.question = req.list.id(req.params.question_id)
+            f(req, res)
+        }
+        catch (err) {
+            return res.status(404).json(err)
+        }
+    })
+}
 
 const getUserLists = readUserAnd((req, res) => {
     return res.status(200).json(req.user.lists)
@@ -50,7 +80,7 @@ const getUserHistoricalChallenges = readUserAnd((req, res) => {
     return res.status(200).json(req.user.weeklyChallenges)
 }, 'weeklyChallenges')
 
-const createListForUser = readUserAnd(async (req, res) => {
+const createListForUser = readUserAnd((req, res) => {
     if(!isValid(listSchema, req, res)) return
 
     req.user.lists.push({
@@ -61,7 +91,7 @@ const createListForUser = readUserAnd(async (req, res) => {
         official: req.payload.official,
     })
     try {
-        req.user.save()
+        req.user.save() // this may be a possible bug?
         const newList = req.user.lists.slice(-1).pop()
         return res.status(201).json(newList)
     }
@@ -71,6 +101,32 @@ const createListForUser = readUserAnd(async (req, res) => {
 
 }, 'lists')
 
+const deleteListForUser = readListAnd((req, res) => {
+    try {
+        req.list.remove()
+        req.user.save()
+        return res.status(204).json(null)
+    }
+    catch (err) {
+        return res.status(404).json(err)
+    }
+})
+
+const editListForUser = readListAnd((req, res) => {
+    try {
+        req.list.language1 = req.body.language1
+        req.list.language2 = req.body.language2
+        req.list.name = req.body.name
+        req.list.public = req.body.public
+    
+        req.user.save()
+        return res.status(204).json(null)
+    }
+    catch (err) {
+        return res.status(404).json(err)
+    }
+})
+
 const newChallengeForUser = readUserAnd(async (req, res) => {
 
 })
@@ -78,6 +134,8 @@ const newChallengeForUser = readUserAnd(async (req, res) => {
 module.exports = {
     list: getUserLists,
     createList: createListForUser,
+    deleteList: deleteListForUser,
+    editList: editListForUser,
 
     challengesList: getUserHistoricalChallenges,
     newChallenge: newChallengeForUser
