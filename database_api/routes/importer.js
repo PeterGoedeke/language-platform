@@ -11,5 +11,6 @@ router.route('/:_id')
     .delete(auth, blacklistCtrl.deleteBlacklist)
     .put(auth, blacklistCtrl.editBlacklist)
 
+router.post('/translate/:l1-:l2', auth, importerCtrl.translateText)
 
 module.exports = router

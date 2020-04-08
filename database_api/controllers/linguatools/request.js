@@ -28,11 +28,11 @@ async function makeRequest(l1, l2, query, wordClass) {
 
     // request the translation with axios
     try {
-        const response = await axios.get(process.env.LINGUATOOLS_URI_FREE, {
+        const response = await axios.get(process.env.LINGUATOOLS_URI, {
             params: {
                 langpair: `${l1}-${l2}`,
                 query: query,
-                wortart: wordClass
+                wortart: wordClass || '{wordclass}'
             },
             // required headers for rapidapi
             headers: {
@@ -41,7 +41,7 @@ async function makeRequest(l1, l2, query, wordClass) {
             }
         })
         // process the data slightly, as the linguatools response is an a weird format
-        if(response.data) {
+        if(response.data.length) {
             response.data.forEach(data => {
                 data.language1 = l1
                 data.language2 = l2
@@ -79,8 +79,8 @@ async function cacheTranslation(translation) {
             synonyme2: translation.synonyme2,
             freq: translation.freq,
             // not swapped because these properties are not from linguatools
-            language1: translation.language1,
-            language2: translation.language2
+            language1: translation.language2,
+            language2: translation.language1
         })
         await newTranslation.save()
     }
@@ -95,7 +95,7 @@ async function cacheTranslation(translation) {
  * @param {String} language The language to which the word belongs
  */
 async function retrieveFromCache(word, language) {
-    const translation = await Translation.findOne({
+    const translation = await Translation.find({
         $or: [
             {
                 $and: [
@@ -132,7 +132,8 @@ async function retrieveFromCache(word, language) {
                 ]
             }
         ]
-    })
+    }).collation({ strength: 2, locale: language })
+    if(!translation.length) return undefined
     return translation
 }
 

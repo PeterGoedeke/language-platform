@@ -1,60 +1,75 @@
-const read = require('./retrieval_helpers')
+const germanWords = require('../germanWords.json')
 const validate = require('./validation')
-const Blacklist = require('mongoose').model('ImporterBlacklist')
+const XRegExp = require('xregexp')
+const translateWord = require('./linguatools/request')
 
-const getBlacklists = read.user(async (req, res) => {
-    const officialBlacklists = await Blacklist.find({ official: true })
-    return res.status(200).json(officialBlacklists.concat(req.user.blacklists))
-}, 'blacklists')
+function extractUniqueWords(text) {
+    const regex = XRegExp("[^\\s\\p{Latin}]+", "g");
+    text = XRegExp.replace(text, regex, '')
+    text = text.replace(/\r?\n|\r/g, ' ')
 
-const createBlacklist = read.user(async (req, res) => {
-    if(!validate.isBlacklist(req, res)) return
+    const words = text.split(' ')
+    const uniqueWords = {}
 
-    req.user.blacklists.push({
-        name: req.body.name,
-        language: req.body.language,
-        words: req.body.words
+    for(const word of words) {
+        uniqueWords[word] = uniqueWords[word] + 1 || 1
+    }
+
+    const uniqueWordsArr = []
+    for(const key in uniqueWords) {
+        uniqueWordsArr.push({ word: key, freq: uniqueWords[key] })
+    }
+    return uniqueWordsArr
+}
+
+async function translateText(req, res) {
+    if(!validate.isImporterRequest(req, res)) return
+
+    if(req.params.l1 != 'de' && req.params.l1 != 'en') {
+        return res.status(404).json('Language not supported')
+    }
+
+    let uniqueWords = extractUniqueWords(req.body.text)
+
+    const notWords = []
+    uniqueWords = uniqueWords.filter(word => {
+        const isAWord = germanWords[word.word.toLowerCase()]
+        if(!isAWord) {
+            notWords.push(word)
+        }
+        return isAWord
     })
-    try {
-        await req.user.save()
-        const newBlacklist = req.user.blacklists.slice(-1).pop()
-        return res.status(201).json(newBlacklist)
-    }
-    catch (err) {
-        return res.status(400).json(err)
-    }
-}, 'blacklists')
 
-const deleteBlacklist = read.blacklist(async (req, res) => {
-    try {
-        req.blacklist.remove()
-        await req.user.save()
-        return res.status(204).json(null)
-    }
-    catch (err) {
-        return res.status(404).json(err)
-    }
-})
+    const translations = []
+    const failedTranslations = []
+    for(let i = 0; i < uniqueWords.length; i++) {
+        const translation = translateWord(req.params.l1, req.params.l2, uniqueWords[i].word)
 
-const editBlacklist = read.blacklist(async (req, res) => {
-    if(!validate.isBlacklist(req, res)) return
-    
-    try {
-        req.blacklist.name = req.body.name
-        req.blacklist.language = req.body.language
-        req.blacklist.words = req.body.words
-        
-        await req.user.save()
-        return res.status(204).json(null)
+        translations[i] = translation
     }
-    catch (err) {
-        return res.status(404).json(err)
+    const potentialSuccesses = await Promise.all(translations)
+
+    const successes = []
+    const failures = []
+    for(let i = potentialSuccesses.length - 1; i >= 0; i--) {
+        if(potentialSuccesses[i].fromCache) {
+            successes.push({ wordData: potentialSuccesses[i], textFreq: uniqueWords[i].freq })
+        }
+        else if(potentialSuccesses[i].data.length) {
+            successes.push({ wordData: potentialSuccesses[i].data, textFreq: uniqueWords[i].freq })
+        }
+        else {
+            failures.push(uniqueWords[i])
+        }
     }
-})
+
+    res.status(200).json({
+        successes,
+        notWords,
+        failures
+    })
+}
 
 module.exports = {
-    getBlacklists,
-    createBlacklist,
-    deleteBlacklist,
-    editBlacklist
+    translateText
 }
