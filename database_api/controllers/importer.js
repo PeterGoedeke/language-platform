@@ -1,8 +1,10 @@
 const read = require('./retrieval_helpers')
 const validate = require('./validation')
+const Blacklist = require('mongoose').model('ImporterBlacklist')
 
-const getBlacklists = read.user((req, res) => {
-    return res.status(200).json(req.user.blacklists)
+const getBlacklists = read.user(async (req, res) => {
+    const officialBlacklists = await Blacklist.find({ official: true })
+    return res.status(200).json(officialBlacklists.concat(req.user.blacklists))
 }, 'blacklists')
 
 const createBlacklist = read.user(async (req, res) => {

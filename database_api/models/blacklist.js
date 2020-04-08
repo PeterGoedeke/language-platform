@@ -12,6 +12,10 @@ const BlacklistSchema = new mongoose.Schema({
     words: {
         type: [String],
         required: true
+    },
+    official: {
+        type: Boolean,
+        default: false
     }
 })
 
