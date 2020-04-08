@@ -1,12 +1,15 @@
 const auth = require('../controllers/security/authorisation')
 const router = require('express').Router()
-const importCtrl = require('../controllers/importer')
+const blacklistCtrl = require('../controllers/blacklist')
+const importerCtrl = require('../controllers/importer')
 
 router.route('/')
-    .get(auth, importCtrl.getBlacklists)
-    .post(auth, importCtrl.createBlacklist)
-router.route('/:blacklist_id')
-    .delete(auth, importCtrl.deleteBlacklist)
-    .put(auth, importCtrl.editBlacklist)
+    .get(auth, blacklistCtrl.getBlacklists)
+    .post(auth, blacklistCtrl.createBlacklist)
+
+router.route('/:_id')
+    .delete(auth, blacklistCtrl.deleteBlacklist)
+    .put(auth, blacklistCtrl.editBlacklist)
+
 
 module.exports = router
