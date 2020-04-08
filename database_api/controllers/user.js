@@ -6,7 +6,7 @@ const getUserLists = read.user((req, res) => {
 }, 'lists')
 
 const createListForUser = read.user(async (req, res) => {
-    if(!validate.isList(req, res)) return
+    if(!validate.isList(req.body, res)) return
 
     req.user.lists.push({
         language1: req.body.language1,
@@ -38,7 +38,7 @@ const deleteListForUser = read.list(async (req, res) => {
 })
 
 const editListForUser = read.list(async (req, res) => {
-    if(!validate.isList(req, res)) return
+    if(!validate.isList(req.body, res)) return
 
     try {
         req.list.language1 = req.body.language1
@@ -80,7 +80,7 @@ function addQuestion(req, source) {
     })
 }
 const createQuestionForList = read.list(async (req, res) => {
-    if(!validate.isQuestion(req, res)) return
+    if(!validate.isQuestion(req.body, res)) return
 
     addQuestion(req)
     try {
@@ -93,7 +93,7 @@ const createQuestionForList = read.list(async (req, res) => {
     }
 })
 const createQuestionsForList = read.list(async (req, res) => {
-    if(!validate.isQuestionList(req, res)) return
+    if(!validate.isQuestionList(req.body.questions, res)) return
 
     try {
         req.body.questions.forEach(question => {
@@ -121,7 +121,7 @@ const deleteQuestionForList = read.question(async (req, res) => {
 })
 
 const editQuestionForList = read.question(async (req, res) => {
-    if(!validate.isQuestion(req, res)) return
+    if(!validate.isQuestion(req.body, res)) return
 
     try {
         req.question.l1Values = req.body.l1Values,

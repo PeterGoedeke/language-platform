@@ -20,10 +20,10 @@ function readUserAnd(f, fieldsDesired = '') {
 
 function readListAnd(f) {
     return readUserAnd((req, res) => {
-        if(!validate.isId(req.params.list_id, res)) return
+        if(!validate.isId(req.params, res)) return
 
         try {
-            req.list = req.user.lists.id(req.params.list_id)
+            req.list = req.user.lists.id(req.params._id)
             f(req, res)
         }
         catch (err) {
@@ -33,10 +33,10 @@ function readListAnd(f) {
 }
 function readQuestionAnd(f) {
     return readListAnd((req, res) => {
-        if(!validate.isId(req.params.question_id, res)) return
+        if(!validate.isId(req.params, res)) return
         
         try {
-            req.question = req.list.questions.find(question => question._id == req.params.question_id)
+            req.question = req.list.questions.find(question => question._id == req.params._id)
             f(req, res)
         }
         catch (err) {
@@ -46,10 +46,10 @@ function readQuestionAnd(f) {
 }
 function readBlacklistAnd(f) {
     return readUserAnd((req, res) => {
-        if(!validate.isId(req.params.blacklist_id, res)) return
+        if(!validate.isId(req.params, res)) return
 
         try {
-            req.blacklist = req.user.blacklists.id(req.params.blacklist_id)
+            req.blacklist = req.user.blacklists.id(req.params._id)
             f(req, res)
         }
         catch (err) {
