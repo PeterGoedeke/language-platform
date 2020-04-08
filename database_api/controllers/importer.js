@@ -5,7 +5,7 @@ const getBlacklists = read.user((req, res) => {
     return res.status(200).json(req.user.blacklists)
 }, 'blacklists')
 
-const createBlacklist = read.user((req, res) => {
+const createBlacklist = read.user(async (req, res) => {
     if(!validate.isBlacklist(req, res)) return
 
     req.user.blacklists.push({
@@ -14,7 +14,7 @@ const createBlacklist = read.user((req, res) => {
         words: req.body.words
     })
     try {
-        req.user.save() // this may be a possible bug?
+        await req.user.save()
         const newBlacklist = req.user.blacklists.slice(-1).pop()
         return res.status(201).json(newBlacklist)
     }
@@ -23,10 +23,10 @@ const createBlacklist = read.user((req, res) => {
     }
 }, 'blacklists')
 
-const deleteBlacklist = read.blacklist((req, res) => {
+const deleteBlacklist = read.blacklist(async (req, res) => {
     try {
         req.blacklist.remove()
-        req.user.save()
+        await req.user.save()
         return res.status(204).json(null)
     }
     catch (err) {
@@ -34,7 +34,7 @@ const deleteBlacklist = read.blacklist((req, res) => {
     }
 })
 
-const editBlacklist = read.blacklist((req, res) => {
+const editBlacklist = read.blacklist(async (req, res) => {
     if(!validate.isBlacklist(req, res)) return
     
     try {
@@ -42,7 +42,7 @@ const editBlacklist = read.blacklist((req, res) => {
         req.blacklist.language = req.body.language
         req.blacklist.words = req.body.words
         
-        req.user.save()
+        await req.user.save()
         return res.status(204).json(null)
     }
     catch (err) {

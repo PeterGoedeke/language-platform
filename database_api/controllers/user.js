@@ -5,7 +5,7 @@ const getUserLists = read.user((req, res) => {
     return res.status(200).json(req.user.lists)
 }, 'lists')
 
-const createListForUser = read.user((req, res) => {
+const createListForUser = read.user(async (req, res) => {
     if(!validate.isList(req, res)) return
 
     req.user.lists.push({
@@ -16,7 +16,7 @@ const createListForUser = read.user((req, res) => {
         official: req.payload.official,
     })
     try {
-        req.user.save() // this may be a possible bug?
+        await req.user.save()
         const newList = req.user.lists.slice(-1).pop()
         return res.status(201).json(newList)
     }
@@ -26,10 +26,10 @@ const createListForUser = read.user((req, res) => {
 
 }, 'lists')
 
-const deleteListForUser = read.list((req, res) => {
+const deleteListForUser = read.list(async (req, res) => {
     try {
         req.list.remove()
-        req.user.save()
+        await req.user.save()
         return res.status(204).json(null)
     }
     catch (err) {
@@ -37,7 +37,7 @@ const deleteListForUser = read.list((req, res) => {
     }
 })
 
-const editListForUser = read.list((req, res) => {
+const editListForUser = read.list(async (req, res) => {
     if(!validate.isList(req, res)) return
 
     try {
@@ -46,7 +46,7 @@ const editListForUser = read.list((req, res) => {
         req.list.name = req.body.name
         req.list.public = req.body.public
     
-        req.user.save()
+        await req.user.save()
         return res.status(204).json(null)
     }
     catch (err) {
@@ -79,12 +79,12 @@ function addQuestion(req, source) {
         l2RecentWrongAnswers: source.l2RecentWrongAnswers
     })
 }
-const createQuestionForList = read.list((req, res) => {
+const createQuestionForList = read.list(async (req, res) => {
     if(!validate.isQuestion(req, res)) return
 
     addQuestion(req)
     try {
-        req.user.save() // this may be a possible bug?
+        await req.user.save() // this may be a possible bug?
         const newQuestion = req.list.questions.slice(-1).pop()
         return res.status(201).json(newQuestion)
     }
@@ -92,14 +92,14 @@ const createQuestionForList = read.list((req, res) => {
         return res.status(400).json(err)
     }
 })
-const createQuestionsForList = read.list((req, res) => {
+const createQuestionsForList = read.list(async (req, res) => {
     if(!validate.isQuestionList(req, res)) return
 
     try {
         req.body.questions.forEach(question => {
             addQuestion(req, question)
         })
-        req.user.save()
+        await req.user.save()
         const newQuestions = req.list.questions.slice(Math.max(req.list.questions.length - req.body.questions.length), 0)
         return res.status(201).json(newQuestions)
     }
@@ -109,10 +109,10 @@ const createQuestionsForList = read.list((req, res) => {
     }
 })
 
-const deleteQuestionForList = read.question((req, res) => {
+const deleteQuestionForList = read.question(async (req, res) => {
     try {
         req.question.remove()
-        req.user.save()
+        await req.user.save()
         return res.status(204).json(null)
     }
     catch (err) {
@@ -120,7 +120,7 @@ const deleteQuestionForList = read.question((req, res) => {
     }
 })
 
-const editQuestionForList = read.question((req, res) => {
+const editQuestionForList = read.question(async (req, res) => {
     if(!validate.isQuestion(req, res)) return
 
     try {
@@ -144,7 +144,7 @@ const editQuestionForList = read.question((req, res) => {
         req.question.l1RecentWrongAnswers = req.body.l1RecentWrongAnswers,
         req.question.l2RecentWrongAnswers = req.body.l2RecentWrongAnswers
     
-        req.user.save()
+        await req.user.save()
         return res.status(204).json(null)
     }
     catch (err) {
