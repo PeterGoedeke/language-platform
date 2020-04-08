@@ -31,6 +31,11 @@ const questionSchema = Joi.object({
     l1RecentWrongAnswers: Joi.number().min(0),
     l2RecentWrongAnswers: Joi.number().min(0)
 })
+const blacklistSchema = Joi.object({
+    name: Joi.string(),
+    language: Joi.string().length(2).lowercase().alphanum(),
+    words: Joi.array().items(Joi.string())
+})
 
 /**
  * Higher order function which produces a validation function which validates the request body against the provided schema.
@@ -74,6 +79,7 @@ module.exports = {
      * @param {Object} res The response object
      */
     isQuestion: isValid(questionSchema),
+    isBlacklist: isValid(blacklistSchema),
     isQuestionList: function(req, res) {
         if(!req.body.questions || !Array.isArray(req.body.questions)) {
             res.status(400).json('Invalid request.')
