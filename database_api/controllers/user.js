@@ -1,56 +1,11 @@
-const mongoose = require('mongoose')
-const User = mongoose.model('User')
-const List = mongoose.model('List')
 const validate = require('./validation')
+const read = require('./retrieval_helpers')
 
-function readUserAnd(f, fieldsDesired = '') {
-    return async function(req, res) {
-        try {
-            const user = await User.findById(req.payload._id, fieldsDesired)
-            if(!user) return res.status(400).json('Could not find a user with that id.')
-            
-            req.user = user
-            f(req, res)
-        }
-        // User.findById will throw if the id provided is not a valid id. This should not happen because of the Joi validation
-        catch (err) {
-            return res.status(401).json('Invalid id.')
-        }
-    }
-}
-function readListAnd(f) {
-    return readUserAnd((req, res) => {
-        if(!validate.isId(req.params.list_id, res)) return
-
-        try {
-            req.list = req.user.lists.id(req.params.list_id)
-            f(req, res)
-        }
-        catch (err) {
-            return res.status(404).json(err)
-        }
-    }, 'lists')
-}
-function readQuestionAnd(f) {
-    return readListAnd((req, res) => {
-        if(!validate.isId(req.params.question_id, res)) return
-        
-        try {
-            req.question = req.list.questions.find(question => question._id == req.params.question_id)
-            f(req, res)
-        }
-        catch (err) {
-            console.log(err)
-            return res.status(404).json(err)
-        }
-    })
-}
-
-const getUserLists = readUserAnd((req, res) => {
+const getUserLists = read.user((req, res) => {
     return res.status(200).json(req.user.lists)
 }, 'lists')
 
-const createListForUser = readUserAnd((req, res) => {
+const createListForUser = read.user((req, res) => {
     if(!validate.isList(req, res)) return
 
     req.user.lists.push({
@@ -71,7 +26,7 @@ const createListForUser = readUserAnd((req, res) => {
 
 }, 'lists')
 
-const deleteListForUser = readListAnd((req, res) => {
+const deleteListForUser = read.list((req, res) => {
     try {
         req.list.remove()
         req.user.save()
@@ -82,7 +37,7 @@ const deleteListForUser = readListAnd((req, res) => {
     }
 })
 
-const editListForUser = readListAnd((req, res) => {
+const editListForUser = read.list((req, res) => {
     if(!validate.isList(req, res)) return
 
     try {
@@ -124,7 +79,7 @@ function addQuestion(req, source) {
         l2RecentWrongAnswers: source.l2RecentWrongAnswers
     })
 }
-const createQuestionForList = readListAnd((req, res) => {
+const createQuestionForList = read.list((req, res) => {
     if(!validate.isQuestion(req, res)) return
 
     addQuestion(req)
@@ -137,7 +92,7 @@ const createQuestionForList = readListAnd((req, res) => {
         return res.status(400).json(err)
     }
 })
-const createQuestionsForList = readListAnd((req, res) => {
+const createQuestionsForList = read.list((req, res) => {
     if(!validate.isQuestionList(req, res)) return
 
     try {
@@ -154,8 +109,7 @@ const createQuestionsForList = readListAnd((req, res) => {
     }
 })
 
-const deleteQuestionForList = readQuestionAnd((req, res) => {
-    console.log('okay')
+const deleteQuestionForList = read.question((req, res) => {
     try {
         req.question.remove()
         req.user.save()
@@ -166,7 +120,7 @@ const deleteQuestionForList = readQuestionAnd((req, res) => {
     }
 })
 
-const editQuestionForList = readQuestionAnd((req, res) => {
+const editQuestionForList = read.question((req, res) => {
     if(!validate.isQuestion(req, res)) return
 
     try {
@@ -199,11 +153,11 @@ const editQuestionForList = readQuestionAnd((req, res) => {
 })
 
 
-const newChallengeForUser = readUserAnd(async (req, res) => {
+const newChallengeForUser = read.user(async (req, res) => {
 
 })
 
-const getUserHistoricalChallenges = readUserAnd((req, res) => {
+const getUserHistoricalChallenges = read.user((req, res) => {
     return res.status(200).json(req.user.weeklyChallenges)
 }, 'weeklyChallenges')
 

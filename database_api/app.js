@@ -9,6 +9,7 @@ require('./models/db.js')
 const authRouter = require('./routes/auth')
 const userRouter = require('./routes/user')
 const listRouter = require('./routes/list')
+const importerRouter = require('./routes/importer')
 
 
 const app = express()
@@ -19,6 +20,7 @@ app.use(express.urlencoded({ extended: false }))
 app.use('/', authRouter)
 app.use('/user', userRouter)
 app.use('/list', listRouter)
+app.use('/importer', importerRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

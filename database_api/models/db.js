@@ -43,6 +43,7 @@ process.on('SIGTERM', () => {
     })
 })
 
+require('./blacklist')
 require('./list')
 require('./user')
 require('./translation')
