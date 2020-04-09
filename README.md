@@ -3,6 +3,9 @@
 A vocabulary builder website. WIP. Intended to allow people to register and login to practise their vocabulary, build vocabulary lists, and do weekly vocabulary challenges.
 
 
+Authentication is currently setup for development only. Among other things tokens do not expire and therefore last forever, which is far from secure. This will be changed before production.
+
+
 # Note for potential employers
 
 
