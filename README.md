@@ -10,5 +10,3 @@ Authentication is currently setup for development only. Among other things token
 
 
 The api for the database is nearing completion and it contains a working user authorisation and authentication system along with an array of secure endpoints for the client to use and integration with the linguatools api. The client side of the application is not yet near completion and will be built with Vue.js.
-
-The work in this repo, alongside my map-routes repository, constitutes what I believe to be the best parts of my portfolio.
